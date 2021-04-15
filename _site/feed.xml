@@ -1,5 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh"><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" hreflang="zh" /><updated>2021-04-15T17:36:52+08:00</updated><id>/feed.xml</id><title type="html">CY’s blog</title><subtitle>輝く星になる
-</subtitle><author><name>CY</name></author><entry><title type="html">Welcome</title><link href="/2018/07/01/welcome.html" rel="alternate" type="text/html" title="Welcome" /><published>2018-07-01T00:00:00+08:00</published><updated>2018-07-01T00:00:00+08:00</updated><id>/2018/07/01/welcome</id><content type="html" xml:base="/2018/07/01/welcome.html">&lt;p&gt;If you see this page, that means you have setup your site. enjoy! :ghost: :ghost: :ghost:&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh"><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" hreflang="zh" /><updated>2021-04-15T22:43:36+08:00</updated><id>/feed.xml</id><title type="html">CY’s blog</title><subtitle>輝く星になる
+</subtitle><author><name>CY</name></author><entry><title type="html">Hello World!</title><link href="/2021/04/15/Hello-World.html" rel="alternate" type="text/html" title="Hello World!" /><published>2021-04-15T00:00:00+08:00</published><updated>2021-04-15T00:00:00+08:00</updated><id>/2021/04/15/Hello-World</id><content type="html" xml:base="/2021/04/15/Hello-World.html">&lt;p&gt;经过大概一个下午，我的github博客终于搭好了:tada:之前看&lt;a href=&quot;https://bot-man-jl.github.io&quot;&gt;睿哥的博客&lt;/a&gt;的时候就觉得github.io的博客看起来比CSDN有逼格多了，身为颜值控的我怎么能不试一试呢？于是今天下午摸了个鱼，找了篇&lt;a href=&quot;https://keysaim.github.io/post/blog/2017-08-15-how-to-setup-your-github-io-blog/&quot;&gt;教程&lt;/a&gt;搭了一下&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;总结一下大概的流程吧&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;首先需要在自己的github目录新建一个仓库，这个仓库名是username.github.io(username是你的github用户名)&lt;/li&gt;
+  &lt;li&gt;向这个目录中增加静态文件，然后访问 https://username.github.io 就会看到渲染出来的效果。github默认使用Jekyll框架进行网站的构建&lt;/li&gt;
+  &lt;li&gt;当然，完全自己写网页是不可能的，毕竟不是所有人都懂前端，所以下一步就是挑选一款喜欢的主题:ghost:我随便搜了一些选中了现在这个TeXt&lt;/li&gt;
+  &lt;li&gt;安装的教程可以参照&lt;a href=&quot;https://tianqi.name/jekyll-TeXt-theme/docs/en/quick-start&quot;&gt;TeXt的官网&lt;/a&gt;进行，其实就是把大佬的网站拷贝一份到自己的repo，然后自己只需要更改一些配置，填充内容即可&lt;/li&gt;
+  &lt;li&gt;如果要本地调试的话，需要额外安装一些工具，中间遇到有一个问题是下面的代码执行报错&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bundle exec jekyll serve
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;报错信息大概是&lt;/p&gt;
+
+&lt;p class=&quot;error&quot;&gt;cannot load such file – webrick (LoadError)&lt;/p&gt;
+&lt;p&gt;于是我在Jekyll的github仓库issues中搜索了一下，终于找到了&lt;a href=&quot;https://github.com/jekyll/jekyll/issues/8531&quot;&gt;解决方法&lt;/a&gt;，输入如下命令即可：&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bundle add webrick
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;然后再执行之前的命令就可以在localhost:4000预览本地的网站效果了&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;一些有用的链接&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://tianqi.name/jekyll-TeXt-theme/test/&quot;&gt;TeXt Home&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md&quot;&gt;Emoji cheat list&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>CY</name></author><category term="HelloWorld!" /><summary type="html">经过大概一个下午，我的github博客终于搭好了:tada:之前看睿哥的博客的时候就觉得github.io的博客看起来比CSDN有逼格多了，身为颜值控的我怎么能不试一试呢？于是今天下午摸了个鱼，找了篇教程搭了一下 总结一下大概的流程吧 首先需要在自己的github目录新建一个仓库，这个仓库名是username.github.io(username是你的github用户名) 向这个目录中增加静态文件，然后访问 https://username.github.io 就会看到渲染出来的效果。github默认使用Jekyll框架进行网站的构建 当然，完全自己写网页是不可能的，毕竟不是所有人都懂前端，所以下一步就是挑选一款喜欢的主题:ghost:我随便搜了一些选中了现在这个TeXt 安装的教程可以参照TeXt的官网进行，其实就是把大佬的网站拷贝一份到自己的repo，然后自己只需要更改一些配置，填充内容即可 如果要本地调试的话，需要额外安装一些工具，中间遇到有一个问题是下面的代码执行报错 bundle exec jekyll serve 报错信息大概是 cannot load such file – webrick (LoadError) 于是我在Jekyll的github仓库issues中搜索了一下，终于找到了解决方法，输入如下命令即可： bundle add webrick 然后再执行之前的命令就可以在localhost:4000预览本地的网站效果了 一些有用的链接 TeXt Home Emoji cheat list</summary></entry><entry><title type="html">Welcome</title><link href="/2018/07/01/welcome.html" rel="alternate" type="text/html" title="Welcome" /><published>2018-07-01T00:00:00+08:00</published><updated>2018-07-01T00:00:00+08:00</updated><id>/2018/07/01/welcome</id><content type="html" xml:base="/2018/07/01/welcome.html">&lt;p&gt;If you see this page, that means you have setup your site. enjoy! :ghost: :ghost: :ghost:&lt;/p&gt;
 
 &lt;p&gt;You may want to &lt;a href=&quot;https://tianqi.name/jekyll-TeXt-theme/docs/en/configuration&quot;&gt;config the site&lt;/a&gt; or &lt;a href=&quot;https://tianqi.name/jekyll-TeXt-theme/docs/en/writing-posts&quot;&gt;writing a post&lt;/a&gt; next. Please feel free to &lt;a href=&quot;https://github.com/kitian616/jekyll-TeXt-theme/issues&quot;&gt;create an issue&lt;/a&gt; or &lt;a href=&quot;mailto:kitian616@outlook.com&quot;&gt;send me email&lt;/a&gt; if you have any questions.&lt;/p&gt;
 
