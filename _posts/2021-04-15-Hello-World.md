@@ -4,7 +4,7 @@ tags: HelloWorld!
 article_header:
   type: cover
   image:
-    src: /assets/image/HelloWorld.jpg
+    src: /assets/images/HelloWorld.jpg
 ---
 
 经过大概一个下午，我的github博客终于搭好了:tada:之前看[睿哥的博客](https://bot-man-jl.github.io)的时候就觉得github.io的博客看起来比CSDN有逼格多了，身为颜值控的我怎么能不试一试呢？于是今天下午摸了个鱼，找了篇[教程](https://keysaim.github.io/post/blog/2017-08-15-how-to-setup-your-github-io-blog/)搭了一下
