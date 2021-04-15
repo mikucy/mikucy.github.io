@@ -1,0 +1,14 @@
+I"2<h2 id="header1">Header1</h2>
+<p>test
+—</p>
+
+<h3 id="header2">Header2</h3>
+
+<h3 id="header3">Header3</h3>
+<hr />
+<h2 id="header2-1">Header2</h2>
+<p>test</p>
+
+<p>A Post with Header Image, See <a href="https://tianqi.name/jekyll-TeXt-theme/samples.html#page-layout">Page layout</a> for more examples.</p>
+
+:ET
