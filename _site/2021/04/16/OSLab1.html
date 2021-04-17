@@ -1,11 +1,10 @@
 <!DOCTYPE html><html lang="zh">
   <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>归档 - CY's blog</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>THU OS Lab1 - CY's blog</title>
 
-<meta name="description" content="輝く星になる
-">
-<link rel="canonical" href="/archive.html"><link rel="alternate" type="application/rss+xml" title="CY's blog" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
+<meta name="description" content="练习11. 操作系统镜像文件ucore.img是如何一步一步生成的  先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）2. 一个被系统认为是符合规范的硬盘主引导扇区的特点  只有512个字节  最后两字节是0x55AA  由不超过466字节的启动代码...">
+<link rel="canonical" href="/2021/04/16/OSLab1.html"><link rel="alternate" type="application/rss+xml" title="CY's blog" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
 
 <meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
 
@@ -255,7 +254,7 @@
 </head>
   <body>
     <div class="root" data-is-touch="false">
-      <div class="layout--page js-page-root"><div class="page__main js-page-main page__viewport cell cell--auto">
+      <div class="layout--page js-page-root"><div class="page__main js-page-main page__viewport has-aside cell cell--auto">
 
       <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
       <div class="header__title">
@@ -269,176 +268,186 @@
 </svg>
 <a title="輝く星になる
 " href="/">CY's blog</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
-        <ul><li class="navigation__item navigation__item--active"><a href="/archive.html">归档</a></li><li class="navigation__item"><a href="/about.html">关于</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+        <ul><li class="navigation__item"><a href="/archive.html">归档</a></li><li class="navigation__item"><a href="/about.html">关于</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
       </nav></div>
   </header>
 </div><div class="page__content"><div class ="main"><div class="grid grid--reverse">
 
-              <div class="col-aside d-print-none js-col-aside"></div>
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
 
               <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
 
 <!-- end custom main top snippet -->
-<article itemscope itemtype="http://schema.org/WebPage"><div class="article__header"><header><h1>归档</h1></header></div><meta itemprop="headline" content="归档"><meta itemprop="author" content="CY"/><div class="js-article-content"><div class="layout--archive js-all"><div class="site-tags js-tags">
-  <ul class="menu">
-    <li>
-      <button type="button" class="button button--secondary button--pill tag-button tag-button--all" data-encode="">
-        Show All<div class="tag-button__count">2</div>
-      </button>
-    </li><li><button type="button" class="button button--pill tag-button tag-button-1" data-encode="HelloWorld%21">
-          <span>HelloWorld!</span><div class="tag-button__count">1</div>
-        </button>
-      </li><li><button type="button" class="button button--pill tag-button tag-button-1" data-encode="OSLab">
-          <span>OSLab</span><div class="tag-button__count">1</div>
-        </button>
-      </li></ul>
-</div>
-<div class="js-result layout--archive__result d-none"><div class="article-list items"><section><h2 class="article-list__group-header">2021</h2><ul class="items"><li class="item" itemscope itemtype="http://schema.org/BlogPosting" data-tags="OSLab">
-        <div class="item__content"><span class="item__meta">04月16日</span><a itemprop="headline" class="item__header" href="/2021/04/16/OSLab1.html">THU OS Lab1</a></div>
-      </li><li class="item" itemscope itemtype="http://schema.org/BlogPosting" data-tags="HelloWorld%21">
-        <div class="item__content"><span class="item__meta">04月15日</span><a itemprop="headline" class="item__header" href="/2021/04/15/Hello-World.html">Hello World!</a></div>
-      </li></div>
-</div>
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1>THU OS Lab1</h1></header></div><meta itemprop="headline" content="THU OS Lab1"><div class="article__info clearfix"><ul class="left-col menu"><li>
+              <a class="button button--secondary button--pill button--sm"
+                href="/archive.html?tag=OSLab">OSLab</a>
+            </li></ul><ul class="right-col menu"><li><i class="far fa-calendar-alt"></i> <span>2021年 04月16日</span>
+            </li></ul></div><meta itemprop="author" content="CY"/><meta itemprop="datePublished" content="2021-04-16T00:00:00+08:00">
+    <meta itemprop="keywords" content="OSLab"><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><h2 id="练习1">练习1</h2>
+<h3 id="1-操作系统镜像文件ucoreimg是如何一步一步生成的">1. 操作系统镜像文件ucore.img是如何一步一步生成的</h3>
+<ul>
+  <li>先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）</li>
+</ul>
+
+<h3 id="2-一个被系统认为是符合规范的硬盘主引导扇区的特点">2. 一个被系统认为是符合规范的硬盘主引导扇区的特点</h3>
+<ul>
+  <li>只有512个字节</li>
+  <li>最后两字节是<code class="language-plaintext highlighter-rouge">0x55AA</code></li>
+  <li>由不超过466字节的启动代码和不超过64字节的硬盘分区表加上结束符构成</li>
+</ul>
+
+<h2 id="练习2">练习2</h2>
+<p>先记录一下在eclipse中用gdb和qemu调试的方法：</p>
+<ol>
+  <li>配置External Tools Configurations，其中的arguments可以指定make的参数，然后参考MakeFile确定</li>
+  <li>配置Debug Configurations，其中的Commands栏可以指定gdb的指令序列</li>
+  <li>先启动qemu，让其进入等待状态（通过MakeFile），然后启动gdb，让其跟qemu建立连接，比如使用如下的参数：
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set architecture i8086
+target remote :1234
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>如果不用eclipse，可以直接写一个文件保存gdb的运行指令，然后在MakeFile中加一个选项指向这个文件（具体参考其他已有的选项）</p>
+
+<h3 id="1-从cpu加电后执行的第一条指令开始单步跟踪bios的执行">1. 从CPU加电后执行的第一条指令开始，单步跟踪BIOS的执行</h3>
+<ul>
+  <li>使用上述的两条指令启动gdb就可以达到效果，根据讲课的视频知道第一条指令在<code class="language-plaintext highlighter-rouge">0xffff0</code>处，可以使用如下指令
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>x /2i 0xffff0
+</code></pre></div>    </div>
+    <p>查看相应的bios代码</p>
+  </li>
+</ul>
+
+<h3 id="2-在初始化位置0x7c00设置实地址断点测试断点正常">2. 在初始化位置0x7c00设置实地址断点，测试断点正常</h3>
+<ul>
+  <li>加上<code class="language-plaintext highlighter-rouge">b 0x7c00</code>即可</li>
+</ul>
+
+<h3 id="3-从0x7c00开始跟踪代码运行将单步跟踪反汇编得到的代码与bootasms和bootblockasm进行比较">3. 从0x7c00开始跟踪代码运行，将单步跟踪反汇编得到的代码与bootasm.S和bootblock.asm进行比较</h3>
+<ul>
+  <li>在eclipse调试器中可以看到相应的汇编代码</li>
+</ul>
+
+<h3 id="4-自己找一个bootloader或内核中的代码位置设置断点并进行调试">4. 自己找一个bootloader或内核中的代码位置，设置断点并进行调试</h3>
+<ul>
+  <li>自由发挥</li>
+</ul>
+
+<h2 id="练习-3">练习 3</h2>
+<h3 id="分析bootloader进入保护模式的过程">分析bootloader进入保护模式的过程</h3>
+<ul>
+  <li>查看bootasm.S源码可知，首先要使能A20总线，然后初始化GDT表（在bootasm.S中），最后把cr0寄存器置1从而使能保护模式</li>
+</ul>
+
+<h2 id="练习4">练习4</h2>
+<h3 id="1-bootloader如何读取硬盘扇区">1. bootloader如何读取硬盘扇区</h3>
+<ul>
+  <li>readsect函数
+    <h3 id="2-bootloader如何加载elf格式的os">2. bootloader如何加载ELF格式的OS</h3>
+  </li>
+  <li>bootmain函数，遍历所有的program header段依次读取，然后调用entry point</li>
+</ul>
+
+<h2 id="练习5">练习5</h2>
+<h3 id="完成print_stackframe的实现">完成<code class="language-plaintext highlighter-rouge">print_stackframe</code>的实现</h3>
+<ul>
+  <li>先看实验指导书了解调用栈的结构，然后根据注释可以很轻松的写出实现。这里主要是对C语言不熟所以不会将32位整数转成地址去读数据，参考了答案写出来的
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void print_stackframe(void) {
+  uint32_t ebp = read_ebp();
+  uint32_t eip = read_eip();
+  uint32_t i;
+  for (i = 0; i &lt; STACKFRAME_DEPTH; ++i) {
+      cprintf("ebp:0x%08x eip:0x%08x ", ebp, eip);
+      uint32_t* args = (uint32_t*)(ebp + 8); // 通过强转成指针来把整数当作地址
+      cprintf("args:0x%08x 0x%08x 0x%08x 0x%08x", args[0], args[1], args[2], args[3]); // 直接通过索引实现对地址的顺序访问
+      cprintf("\n");
+      print_debuginfo(eip-1);
+      eip = ((uint32_t*)(ebp + 4))[0]; // 同理，转成指针并用索引来读地址中的值。记住返回地址存放在ebp的上面4位的地址中
+      ebp = ((uint32_t*)ebp)[0]; // 上一个ebp存放在ebp对应的地址中
+  }
+}
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="练习6">练习6</h2>
+<h3 id="1-中断描述符表中一个表项占多少字节哪几位代表中断处理代码的入口">1. 中断描述符表中一个表项占多少字节？哪几位代表中断处理代码的入口？</h3>
+<ul>
+  <li>8字节。可以在<code class="language-plaintext highlighter-rouge">mmu.h</code>中看到<code class="language-plaintext highlighter-rouge">gatedesc</code>的定义，其中第0~15位是偏移量的低16位，第16~31位是段选择子，第48~63位是偏移量的高16位。通过段选择子从全局描述符表找到相应的段基址，然后通过偏移量找到中断例程的入口</li>
+</ul>
+
+<h3 id="2-完成idt_init函数">2. 完成<code class="language-plaintext highlighter-rouge">idt_init</code>函数</h3>
+<ul>
+  <li>有些存疑的地方，主要是对第三个参数GD_KTEXT不太理解，目前先理解为因为<code class="language-plaintext highlighter-rouge">vectors</code>中的中断服务例程都放在了内核的代码段，所以所有的段选择子都填这个
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void idt_init(void) {
+  extern uintptr_t __vectors[];
+  int i;
+  for (int i = 0; i &lt; 256; ++i) {
+      SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL); // idt项，是否为系统调用，段选择子，偏移量，特权级别
+  }
+  SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER); // 从用户切到内核是用户特权级
+  lidt(&amp;idt_pd);
+}
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h3 id="3-完成trap函数">3. 完成<code class="language-plaintext highlighter-rouge">trap</code>函数</h3>
+<ul>
+  <li>只完成了时钟中断
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>case IRQ_OFFSET + IRQ_TIMER:
+  ticks++;
+  if (ticks % TICK_NUM == 0) {
+      print_ticks();
+  }
+  break;
+</code></pre></div>    </div>
+  </li>
+</ul>
+</div><section class="article__sharing d-print-none"></section><div class="d-print-none"><footer class="article__footer"><meta itemprop="dateModified" content="2021-04-16T00:00:00+08:00"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__license"><div class="license">
+    <p>本文遵守 <a itemprop="license" rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">Attribution-NonCommercial 4.0 International</a> 许可协议。
+      <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">
+        <img alt="Attribution-NonCommercial 4.0 International" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
+      </a>
+    </p>
+  </div></div></footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span>上篇</span><a href="/2021/04/15/Hello-World.html">Hello World!</a></div></div></div>
+
 </div>
 
 <script>(function() {
   var SOURCES = window.TEXT_VARIABLES.sources;
-  function queryString() {
-    // This function is anonymous, is executed immediately and
-    // the return value is assigned to QueryString!
-    var i = 0, queryObj = {}, pair;
-    var queryStr = window.location.search.substring(1);
-    var queryArr = queryStr.split('&');
-    for (i = 0; i < queryArr.length; i++) {
-      pair = queryArr[i].split('=');
-      // If first entry with this name
-      if (typeof queryObj[pair[0]] === 'undefined') {
-        queryObj[pair[0]] = pair[1];
-        // If second entry with this name
-      } else if (typeof queryObj[pair[0]] === 'string') {
-        queryObj[pair[0]] = [queryObj[pair[0]], pair[1]];
-        // If third or later entry with this name
-      } else {
-        queryObj[pair[0]].push(pair[1]);
-      }
-    }
-    return queryObj;
-  }
-
-  var setUrlQuery = (function() {
-    var baseUrl =  window.location.href.split('?')[0];
-    return function(query) {
-      if (typeof query === 'string') {
-        window.history.replaceState(null, '', baseUrl + query);
-      } else {
-        window.history.replaceState(null, '', baseUrl);
-      }
-    };
-  })();
-
   window.Lazyload.js(SOURCES.jquery, function() {
-    var $tags = $('.js-tags');
-    var $articleTags = $tags.find('button');
-    var $tagShowAll = $tags.find('.tag-button--all');
-    var $result = $('.js-result');
-    var $sections = $result.find('section');
-    var sectionArticles = [];
-    var $lastFocusButton = null;
-    var sectionTopArticleIndex = [];
-    var hasInit = false;
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
 
-    $sections.each(function() {
-      sectionArticles.push($(this).find('.item'));
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
     });
-
-    function init() {
-      var i, index = 0;
-      for (i = 0; i < $sections.length; i++) {
-        sectionTopArticleIndex.push(index);
-        index += $sections.eq(i).find('.item').length;
-      }
-      sectionTopArticleIndex.push(index);
-    }
-
-    function searchButtonsByTag(_tag/*raw tag*/) {
-      if (!_tag) {
-        return $tagShowAll;
-      }
-      var _buttons = $articleTags.filter('[data-encode="' + _tag + '"]');
-      if (_buttons.length === 0) {
-        return $tagShowAll;
-      }
-      return _buttons;
-    }
-    function buttonFocus(target) {
-      if (target) {
-        target.addClass('focus');
-        $lastFocusButton && !$lastFocusButton.is(target) && $lastFocusButton.removeClass('focus');
-        $lastFocusButton = target;
-      }
-    }
-
-    function tagSelect (tag/*raw tag*/, target) {
-      var result = {}, $articles;
-      var i, j, k, _tag;
-
-      for (i = 0; i < sectionArticles.length; i++) {
-        $articles = sectionArticles[i];
-        for (j = 0; j < $articles.length; j++) {
-          if (tag === '' || tag === undefined) {
-            result[i] || (result[i] = {});
-            result[i][j] = true;
-          } else {
-            var tags = $articles.eq(j).data('tags').split(',');
-            for (k = 0; k < tags.length; k++) {
-              if (tags[k] === tag) {
-                result[i] || (result[i] = {});
-                result[i][j] = true; break;
-              }
-            }
-          }
-        }
-      }
-
-      for (i = 0; i < sectionArticles.length; i++) {
-        result[i] && $sections.eq(i).removeClass('d-none');
-        result[i] || $sections.eq(i).addClass('d-none');
-        for (j = 0; j < sectionArticles[i].length; j++) {
-          if (result[i] && result[i][j]) {
-            sectionArticles[i].eq(j).removeClass('d-none');
-          } else {
-            sectionArticles[i].eq(j).addClass('d-none');
-          }
-        }
-      }
-
-      hasInit || ($result.removeClass('d-none'), hasInit = true);
-
-
-      if (target) {
-        buttonFocus(target);
-        _tag = target.attr('data-encode');
-        if (_tag === '' || typeof _tag !== 'string') {
-          setUrlQuery();
-        } else {
-          setUrlQuery('?tag=' + _tag);
-        }
-      } else {
-        buttonFocus(searchButtonsByTag(tag));
-      }
-    }
-
-    var query = queryString(), _tag = query.tag;
-    init(); tagSelect(_tag);
-    $tags.on('click', 'button', function() {
-      tagSelect($(this).data('encode'), $(this));
-    });
-
   });
 })();
 </script>
-
-
 </div><section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
 
 <!-- end custom main bottom snippet -->
@@ -983,6 +992,68 @@ window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
 /*(function () {
 
 })();*/
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
 </script>
     </div>
     <script>(function () {

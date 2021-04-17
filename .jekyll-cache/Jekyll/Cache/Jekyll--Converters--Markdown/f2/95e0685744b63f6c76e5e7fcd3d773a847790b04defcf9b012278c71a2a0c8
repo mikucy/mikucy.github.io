@@ -1,0 +1,21 @@
+I".<h2 id="练习1">练习1</h2>
+<ol>
+  <li>操作系统镜像文件ucore.img是如何一步一步生成的</li>
+</ol>
+
+<ul>
+  <li>先生成kernel和bootblock，然后生成ucore.img</li>
+</ul>
+
+<ol>
+  <li>一个被系统认为是符合规范的硬盘主引导扇区的特点</li>
+</ol>
+
+<ul>
+  <li>只有512个字节</li>
+  <li>最后两字节是<code class="language-plaintext highlighter-rouge">0x55AA</code></li>
+  <li>由不超过466字节的启动代码和不超过64字节的硬盘分区表加上结束符构成</li>
+</ul>
+
+<h2 id="练习2">练习2</h2>
+:ET

@@ -280,6 +280,31 @@
 
 <!-- end custom main top snippet -->
 <article itemscope itemtype="http://schema.org/WebPage"><header style="display:none;"><h1>主页</h1></header><meta itemprop="headline" content="主页"><meta itemprop="author" content="CY"/><div class="js-article-content"><div class="layout--articles"><div class="article-list items items--divided"><article class="item" itemscope itemtype="http://schema.org/BlogPosting"><div class="item__content">
+          <header><a href="/2021/04/16/OSLab1.html"><h2 itemprop="headline" class="item__header">THU OS Lab1</h2></a></header>
+          <div class="item__description"><div class="article__content" itemprop="description articleBody">练习1
+1. 操作系统镜像文件ucore.img是如何一步一步生成的
+
+  先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）
+
+
+2. 一个被系统认为是符合规范的硬盘主引导扇区的特点
+
+  只有512个字节
+  最后两字节是0x55AA
+  由不超过466字节的启动代码和不超过64字节的硬盘分区表加上结束符构成
+
+
+练习2
+先记录一下在eclipse中用gdb和qemu调试的方法：
+
+  配置External Tools Configurations，其中的arguments可以指定make的参数，然后参考MakeFile确定
+  配置Debug Configurations，其中的Commands栏可以指定gdb的指令序...</div><p><a href="/2021/04/16/OSLab1.html">阅读更多</a></p></div><div class="article__info clearfix"><ul class="left-col menu"><li>
+              <a class="button button--secondary button--pill button--sm"
+                href="/archive.html?tag=OSLab">OSLab</a>
+            </li></ul><ul class="right-col menu"><li><i class="far fa-calendar-alt"></i> <span>2021年 04月16日</span>
+            </li></ul></div><meta itemprop="author" content="CY"/><meta itemprop="datePublished" content="2021-04-16T00:00:00+08:00">
+    <meta itemprop="keywords" content="OSLab"></div>
+      </article><article class="item" itemscope itemtype="http://schema.org/BlogPosting"><div class="item__content">
           <header><a href="/2021/04/15/Hello-World.html"><h2 itemprop="headline" class="item__header">Hello World!</h2></a></header>
           <div class="item__description"><div class="article__content" itemprop="description articleBody"></div><p><a href="/2021/04/15/Hello-World.html">阅读更多</a></p></div><div class="article__info clearfix"><ul class="left-col menu"><li>
               <a class="button button--secondary button--pill button--sm"

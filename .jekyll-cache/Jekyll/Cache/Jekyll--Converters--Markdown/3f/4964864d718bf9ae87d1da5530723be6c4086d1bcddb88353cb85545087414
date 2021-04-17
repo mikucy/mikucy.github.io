@@ -1,0 +1,31 @@
+I"w<h2 id="练习1">练习1</h2>
+<ol>
+  <li>操作系统镜像文件ucore.img是如何一步一步生成的
+    <ul>
+      <li>先生成kernel和bootblock，然后生成ucore.img（待补充）</li>
+    </ul>
+  </li>
+  <li>一个被系统认为是符合规范的硬盘主引导扇区的特点
+    <ul>
+      <li>只有512个字节</li>
+      <li>最后两字节是<code class="language-plaintext highlighter-rouge">0x55AA</code></li>
+      <li>由不超过466字节的启动代码和不超过64字节的硬盘分区表加上结束符构成</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="练习2">练习2</h2>
+<p>先记录一下在eclipse中用gdb和qemu调试的方法：</p>
+<ol>
+  <li>配置External Tools Configurations，其中的arguments可以指定make的参数，然后参考MakeFile确定</li>
+  <li>配置Debug Configurations，其中的Commands栏可以指定gdb的指令序列</li>
+  <li>先启动qemu，让其进入等待状态（通过MakeFile），然后启动gdb，让其跟qemu建立连接，比如使用如下的参数：
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set architecture i8086
+target remote :1234
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <h2 id="从cpu加电后执行的第一条指令开始单步跟踪bios的执行">从CPU加电后执行的第一条指令开始，单步跟踪BIOS的执行</h2>
+  </li>
+</ol>
+:ET
