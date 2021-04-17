@@ -3,7 +3,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>THU OS Lab1 - CY's blog</title>
 
-<meta name="description" content="练习11. 操作系统镜像文件ucore.img是如何一步一步生成的  先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）2. 一个被系统认为是符合规范的硬盘主引导扇区的特点  只有512个字节  最后两字节是0x55AA  由不超过466字节的启动代码...">
+<meta name="description" content="操作系统实验1">
 <link rel="canonical" href="/2021/04/16/OSLab1.html"><link rel="alternate" type="application/rss+xml" title="CY's blog" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
 
 <meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
@@ -287,7 +287,9 @@
     <meta itemprop="keywords" content="OSLab"><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
 
 <!-- end custom article top snippet -->
-<div class="article__content" itemprop="articleBody"><h2 id="练习1">练习1</h2>
+<div class="article__content" itemprop="articleBody"><p>操作系统实验1
+<!--more--></p>
+<h2 id="练习1">练习1</h2>
 <h3 id="1-操作系统镜像文件ucoreimg是如何一步一步生成的">1. 操作系统镜像文件ucore.img是如何一步一步生成的</h3>
 <ul>
   <li>先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）</li>
