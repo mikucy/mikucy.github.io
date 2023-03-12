@@ -1,0 +1,111 @@
+I"�<h2 id="练习1">练习1</h2>
+<h3 id="1-操作系统镜像文件ucoreimg是如何一步一步生成的">1. 操作系统镜像文件ucore.img是如何一步一步生成的</h3>
+<ul>
+  <li>先生成kernel和bootblock，然后生成ucore.img（需要研究下MakeFile的写法，兴趣不大）</li>
+</ul>
+
+<h3 id="2-一个被系统认为是符合规范的硬盘主引导扇区的特点">2. 一个被系统认为是符合规范的硬盘主引导扇区的特点</h3>
+<ul>
+  <li>只有512个字节</li>
+  <li>最后两字节是<code class="language-plaintext highlighter-rouge">0x55AA</code></li>
+  <li>由不超过466字节的启动代码和不超过64字节的硬盘分区表加上结束符构成</li>
+</ul>
+
+<h2 id="练习2">练习2</h2>
+<p>先记录一下在eclipse中用gdb和qemu调试的方法：</p>
+<ol>
+  <li>配置External Tools Configurations，其中的arguments可以指定make的参数，然后参考MakeFile确定</li>
+  <li>配置Debug Configurations，其中的Commands栏可以指定gdb的指令序列</li>
+  <li>先启动qemu，让其进入等待状态（通过MakeFile），然后启动gdb，让其跟qemu建立连接，比如使用如下的参数：
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set architecture i8086
+target remote :1234
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>如果不用eclipse，可以直接写一个文件保存gdb的运行指令，然后在MakeFile中加一个选项指向这个文件（具体参考其他已有的选项）</p>
+
+<h3 id="1-从cpu加电后执行的第一条指令开始单步跟踪bios的执行">1. 从CPU加电后执行的第一条指令开始，单步跟踪BIOS的执行</h3>
+<ul>
+  <li>使用上述的两条指令启动gdb就可以达到效果，根据讲课的视频知道第一条指令在<code class="language-plaintext highlighter-rouge">0xffff0</code>处，可以使用如下指令
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>x /2i 0xffff0
+</code></pre></div>    </div>
+    <p>查看相应的bios代码</p>
+  </li>
+</ul>
+
+<h3 id="2-在初始化位置0x7c00设置实地址断点测试断点正常">2. 在初始化位置0x7c00设置实地址断点，测试断点正常</h3>
+<ul>
+  <li>加上<code class="language-plaintext highlighter-rouge">b 0x7c00</code>即可</li>
+</ul>
+
+<h3 id="3-从0x7c00开始跟踪代码运行将单步跟踪反汇编得到的代码与bootasms和bootblockasm进行比较">3. 从0x7c00开始跟踪代码运行，将单步跟踪反汇编得到的代码与bootasm.S和bootblock.asm进行比较</h3>
+<ul>
+  <li>在eclipse调试器中可以看到相应的汇编代码</li>
+</ul>
+
+<h3 id="4-自己找一个bootloader或内核中的代码位置设置断点并进行调试">4. 自己找一个bootloader或内核中的代码位置，设置断点并进行调试</h3>
+<ul>
+  <li>自由发挥</li>
+</ul>
+
+<h2 id="练习-3">练习 3</h2>
+<h3 id="分析bootloader进入保护模式的过程">分析bootloader进入保护模式的过程</h3>
+<ul>
+  <li>查看bootasm.S源码可知，首先要使能A20总线，然后初始化GDT表（在bootasm.S中），最后把cr0寄存器置1从而使能保护模式</li>
+</ul>
+
+<h2 id="练习4">练习4</h2>
+<h3 id="1-bootloader如何读取硬盘扇区">1. bootloader如何读取硬盘扇区</h3>
+<ul>
+  <li>readsect函数
+    <h3 id="2-bootloader如何加载elf格式的os">2. bootloader如何加载ELF格式的OS</h3>
+  </li>
+  <li>bootmain函数，遍历所有的program header段依次读取，然后调用entry point</li>
+</ul>
+
+<h2 id="练习5">练习5</h2>
+<h3 id="完成print_stackframe的实现">完成<code class="language-plaintext highlighter-rouge">print_stackframe</code>的实现</h3>
+<ul>
+  <li>先看实验指导书了解调用栈的结构，然后根据注释可以很轻松的写出实现。这里主要是对C语言不熟所以不会将32位整数转成地址去读数据，参考了答案写出来的
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void print_stackframe(void) {
+  uint32_t ebp = read_ebp();
+  uint32_t eip = read_eip();
+  uint32_t i;
+  for (i = 0; i &lt; STACKFRAME_DEPTH; ++i) {
+      cprintf("ebp:0x%08x eip:0x%08x ", ebp, eip);
+      uint32_t* args = (uint32_t*)(ebp + 8); // 通过强转成指针来把整数当作地址
+      cprintf("args:0x%08x 0x%08x 0x%08x 0x%08x", args[0], args[1], args[2], args[3]); // 直接通过索引实现对地址的顺序访问
+      cprintf("\n");
+      print_debuginfo(eip-1);
+      eip = ((uint32_t*)(ebp + 4))[0]; // 同理，转成指针并用索引来读地址中的值。记住返回地址存放在ebp的上面4位的地址中
+      ebp = ((uint32_t*)ebp)[0]; // 上一个ebp存放在ebp对应的地址中
+  }
+}
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="练习6">练习6</h2>
+<h3 id="1-中断描述符表中一个表项占多少字节哪几位代表中断处理代码的入口">1. 中断描述符表中一个表项占多少字节？哪几位代表中断处理代码的入口？</h3>
+<ul>
+  <li>8字节。可以在<code class="language-plaintext highlighter-rouge">mmu.h</code>中看到<code class="language-plaintext highlighter-rouge">gatedesc</code>的定义，其中第0~15位是偏移量的低16位，第16~31位是段选择子，第48~63位是偏移量的高16位。通过段选择子从全局描述符表找到相应的段基址，然后通过偏移量找到中断例程的入口</li>
+</ul>
+
+<h3 id="2-完成idt_init函数">2. 完成<code class="language-plaintext highlighter-rouge">idt_init</code>函数</h3>
+<ul>
+  <li>有些存疑的地方，主要是对第三个参数GD_KTEXT不太理解，目前先理解为因为<code class="language-plaintext highlighter-rouge">vectors</code>中的中断服务例程都放在了内核的代码段，所以所有的段选择子都填这个
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void idt_init(void) {
+  extern uintptr_t __vectors[];
+  int i;
+  for (int i = 0; i &lt; 256; ++i) {
+      SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL); // idt项，是否为系统调用，段选择子，偏移量，特权级别
+  }
+  SETGATE(idt[T_SWITCH_TOK], 0, GD_KTEXT, __vectors[T_SWITCH_TOK], DPL_USER); // 从用户切到内核是用户特权级
+  lidt(&amp;idt_pd);
+}
+</code></pre></div>    </div>
+    <h3 id="3-完成trap函数">3. 完成<code class="language-plaintext highlighter-rouge">trap</code>函数</h3>
+  </li>
+</ul>
+:ET
