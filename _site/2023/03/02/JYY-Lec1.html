@@ -1,0 +1,1282 @@
+<!DOCTYPE html><html lang="zh">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>《操作系统：设计与实现》学习笔记一 - CY's blog</title>
+
+<meta name="description" content="">
+<link rel="canonical" href="/2023/03/02/JYY-Lec1.html"><link rel="alternate" type="application/rss+xml" title="CY's blog" href="/feed.xml"><!-- start favicons snippet, use https://realfavicongenerator.net/ --><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#fc4d50"><link rel="shortcut icon" href="/assets/favicon.ico">
+
+<meta name="msapplication-TileColor" content="#ffc40d"><meta name="msapplication-config" content="/assets/browserconfig.xml">
+
+<meta name="theme-color" content="#ffffff">
+<!-- end favicons snippet --><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.15.1/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://cdn.bootcdn.net/ajax/libs/font-awesome/5.15.1/css/all.css',
+        jquery: 'https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://cdn.bootcss.com/Chart.js/2.7.2/Chart.bundle.min.js',
+        gitalk: {
+          js: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.js',
+          css: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.css'
+        },
+        valine: 'https://unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://cdn.bootcss.com/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://cdn.bootcss.com/mermaid/8.0.0-rc.8/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page js-page-root"><div class="page__main js-page-main page__viewport has-aside cell cell--auto">
+
+      <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="24px" height="24px" viewBox="0 0 24 24">
+<style type="text/css">
+	.st0{fill:#515151;}
+</style>
+<path class="st0" d="M1.7,22.3c5.7-5.7,11.3-5.7,17,0c3.3-3.3,3.5-5.3,0.8-6c2.7,0.7,3.5-1.1,2.3-5.6s-3.3-5.2-6.3-2.1
+	c3-3,2.3-5.2-2.1-6.3S7,1.8,7.7,4.6C7,1.8,5,2.1,1.7,5.3C7.3,11,7.3,16.7,1.7,22.3"/>
+</svg>
+<a title="輝く星になる
+" href="/">CY's blog</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
+        <ul><li class="navigation__item"><a href="/archive.html">归档</a></li><li class="navigation__item"><a href="/about.html">关于</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+      </nav></div>
+  </header>
+</div><div class="page__content"><div class ="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1>《操作系统：设计与实现》学习笔记一</h1></header></div><meta itemprop="headline" content="《操作系统：设计与实现》学习笔记一"><div class="article__info clearfix"><ul class="left-col menu"><li>
+              <a class="button button--secondary button--pill button--sm"
+                href="/archive.html?tag=OS_Learning">OS_Learning</a>
+            </li></ul><ul class="right-col menu"><li><i class="far fa-calendar-alt"></i> <span>2023年 03月02日</span>
+            </li></ul></div><meta itemprop="author" content="CY"/><meta itemprop="datePublished" content="2023-03-02T00:00:00+08:00">
+    <meta itemprop="keywords" content="OS_Learning"><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><!--more-->
+<p>本系列是南京大学蒋炎岩老师的操作系统课程学习笔记</p>
+
+<p>课程主页：<a href="http://jyywiki.cn/OS/2022/">老师的wiki</a></p>
+
+<p>课程视频：<a href="https://space.bilibili.com/202224425/channel/collectiondetail?sid=192498">B站合集</a></p>
+
+<hr />
+
+<p>第一节课回答了一个问题：什么是程序</p>
+
+<p>由于使用的是ssh登录linux机器来学习，这里也记录一下</p>
+
+<p class="info">📌 使用ssh登录linux的方法：<code class="language-plaintext highlighter-rouge">ssh username@remote_host</code>，例如:<code class="language-plaintext highlighter-rouge">ssh cy@127.0.0.1</code></p>
+
+<h2 id="数字电路与状态机">数字电路与状态机</h2>
+<p>首先介绍了什么是状态机，状态机可以理解为数字电路的有限种状态的集合，数字电路的初始值即位状态机的初始状态，状态之间的迁移通过组合逻辑电路来计算出下一个状态
+比如有两个寄存器X，Y，初始值均为0，实现的数字电路为：</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">X</span> <span class="o">=</span> <span class="o">!</span><span class="no">X</span> <span class="o">&amp;&amp;</span> <span class="no">Y</span>
+<span class="no">Y</span> <span class="o">=</span> <span class="o">!</span><span class="no">X</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="no">Y</span>
+</code></pre></div></div>
+<p>那么状态机就会经历如下的状态迁移：
+(0, 0) -&gt; (0, 1) -&gt; (1, 0) -&gt; (0, 0) …</p>
+
+<h2 id="什么是程序源代码视角">什么是程序（源代码视角）</h2>
+<p>从源代码的角度来看，程序也是状态机。简单的理解：</p>
+<ul>
+  <li>状态就是程序的堆和栈</li>
+  <li>迁移方式就是每次执行的指令</li>
+</ul>
+
+<p>如果用gdb来调试，我们会更直观的感受到，PC（程序计数器）总是指向某一条指令，执行该指令后则跳转到下一条</p>
+
+<p class="info">📌 设置gdb展示源代码：<code class="language-plaintext highlighter-rouge">layout src</code></p>
+
+<p><img src="/assets/images/JYYOS/lec1/hello.png" alt="Image" /></p>
+
+<p>更深层次的理解：</p>
+<ul>
+  <li>状态 = 栈帧列表（每个栈帧有对应的PC）+ 全局变量</li>
+  <li>初始状态 = main(argc, argv) + 全局变量初始化</li>
+  <li>状态迁移 = 执行top stack frame的PC对应的语句，PC++
+    <ul>
+      <li>函数调用 = push frame (frame.PC = 入口)</li>
+      <li>函数返回 = pop frame</li>
+    </ul>
+  </li>
+</ul>
+
+<p>来看一个递归实现的汉诺塔程序，不难理解</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#include &lt;stdio.h&gt;</span>
+
+<span class="n">void</span> <span class="n">hanoi</span><span class="p">(</span><span class="n">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">char</span> <span class="n">from</span><span class="p">,</span> <span class="n">char</span> <span class="n">via</span><span class="p">,</span> <span class="n">char</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">printf</span><span class="p">(</span><span class="s2">"%c -&gt; %c</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">from</span><span class="p">,</span> <span class="n">to</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">hanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">from</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">via</span><span class="p">);</span>
+  <span class="n">hanoi</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">from</span><span class="p">,</span> <span class="n">via</span><span class="p">,</span> <span class="n">to</span><span class="p">);</span>
+  <span class="n">hanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">via</span><span class="p">,</span> <span class="n">from</span><span class="p">,</span> <span class="n">to</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">hanoi</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="sr">//</span> <span class="no">Output</span>
+<span class="no">A</span> <span class="o">-&gt;</span> <span class="no">C</span>
+<span class="no">A</span> <span class="o">-&gt;</span> <span class="no">B</span>
+<span class="no">C</span> <span class="o">-&gt;</span> <span class="no">B</span>
+<span class="no">A</span> <span class="o">-&gt;</span> <span class="no">C</span>
+<span class="no">B</span> <span class="o">-&gt;</span> <span class="no">A</span>
+<span class="no">B</span> <span class="o">-&gt;</span> <span class="no">C</span>
+<span class="no">A</span> <span class="o">-&gt;</span> <span class="no">C</span>
+</code></pre></div></div>
+<p>当理解了程序是状态机这一原理之后，我们可以通过改变栈帧的方式将其改写为非递归的形式</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#include &lt;stdio.h&gt;</span>
+
+<span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
+  <span class="n">int</span> <span class="n">pc</span><span class="p">,</span> <span class="n">n</span><span class="p">;</span>
+  <span class="n">char</span> <span class="n">from</span><span class="p">,</span> <span class="n">via</span><span class="p">,</span> <span class="n">to</span><span class="p">;</span>
+<span class="p">}</span> <span class="no">Frame</span><span class="p">;</span>
+
+<span class="c1">#define call(...) ({ *(++top) = (Frame) {.pc = 0, __VA_ARGS__}; })</span>
+<span class="sr">//</span> <span class="err">注意：这里为什么是</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="err">？因为</span><span class="k">for</span><span class="err">循环内会自动让</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">pc</span><span class="o">++</span>
+<span class="c1">#define go(n) ({ f-&gt;pc = n - 1; })</span>
+<span class="sr">//</span> <span class="err">注意：这里需要设置</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="err">吗？不需要，因为当前的栈帧都没用了，下次循环时</span><span class="n">f</span><span class="err">会指向上一个栈帧，并从该栈帧的</span><span class="n">pc</span><span class="err">继续执行</span>
+<span class="c1">#define ret() ({ --top; }) </span>
+
+<span class="n">void</span> <span class="n">hanoi_nr</span><span class="p">(</span><span class="n">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">char</span> <span class="n">from</span><span class="p">,</span> <span class="n">char</span> <span class="n">via</span><span class="p">,</span> <span class="n">char</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>
+  <span class="no">Frame</span> <span class="n">stack</span><span class="p">[</span><span class="mi">64</span><span class="p">],</span> <span class="o">*</span><span class="n">top</span> <span class="o">=</span> <span class="n">stack</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">call</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">from</span><span class="p">,</span> <span class="n">via</span><span class="p">,</span> <span class="n">to</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="no">Frame</span> <span class="o">*</span><span class="n">f</span><span class="p">;</span> <span class="p">(</span><span class="n">f</span> <span class="o">=</span> <span class="n">top</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">stack</span><span class="p">;</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">pc</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">switch</span> <span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">pc</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">printf</span><span class="p">(</span><span class="s2">"%c -&gt; %c</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">from</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">to</span><span class="p">);</span>
+        <span class="n">go</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="n">call</span><span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">from</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">to</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">via</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="mi">2</span><span class="p">:</span>
+      <span class="n">call</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">from</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">via</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">to</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="n">call</span><span class="p">(</span><span class="n">f</span><span class="o">-&gt;</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">via</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">from</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">to</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="mi">4</span><span class="p">:</span>
+      <span class="n">ret</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span> <span class="n">hanoi_nr</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">);</span> <span class="p">}</span>
+</code></pre></div></div>
+<p>这段代码其实就是递归的形式，只不过我们将递归的调用改成了操作栈帧和PC的形式。每次递归调用时就创建一个栈帧，根据栈帧内PC的不同值执行对应的语句。这里每个栈帧的大小是一样的，只有两个int和三个char，在一般的程序中，栈帧大小通常跟当前函数的局部变量个数有关，但原理是一样的</p>
+
+<h2 id="什么是程序二进制视角">什么是程序（二进制视角）</h2>
+<ul>
+  <li>状态 = 寄存器R，内存M</li>
+  <li>初始状态 = ？（后续解释）</li>
+  <li>迁移 = 执行一条指令</li>
+</ul>
+
+<p>同样用gdb来观察</p>
+
+<p class="info">📌 使用<code class="language-plaintext highlighter-rouge">starti</code>来使gdb执行第一条指令，使用<code class="language-plaintext highlighter-rouge">layout asm</code>来使gdb展示汇编代码</p>
+
+<p><img src="/assets/images/JYYOS/lec1/binary.png" alt="Image" />
+我们可以看到，与源代码不同的是，此时状态机的迁移变成了一条条的汇编指令</p>
+
+<p>这里要记住一个事实：所有的指令都只能<strong>计算</strong>，做不到其他的事情（比如让程序停止运行）</p>
+
+<p>于是就引出了系统调用的概念，系统调用可以看作是一个特殊的指令，程序将自己的状态（R，M）完全交给操作系统随意修改，从而实现与操作系统中其他对象的交互</p>
+<ul>
+  <li>读写文件/操作系统状态（例如将文件内容写回M）</li>
+  <li>改变程序状态（例如退出程序）</li>
+</ul>
+
+<p>因此</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">程序</span> <span class="o">=</span> <span class="err">计算</span> <span class="o">+</span> <span class="nb">syscall</span>
+</code></pre></div></div>
+
+<h3 id="问题构建一个最小的hello-world程序">问题：构建一个最小的Hello World程序</h3>
+<h4 id="naive-approach">Naive approach</h4>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#include &lt;stdio.h&gt;</span>
+
+<span class="n">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nb">printf</span><span class="p">(</span><span class="s2">"Hello, World</span><span class="se">\n</span><span class="s2">"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>这个程序是否真的够小呢？当我们使用<code class="language-plaintext highlighter-rouge">gcc --verbose</code>查看gcc的完整编译选项时，会发现其实有很多很多的选项。再使用<code class="language-plaintext highlighter-rouge">size</code>查看可执行文件的大小，会发现有2000+字节</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">➜</span>  <span class="n">size</span> <span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+   <span class="n">text</span>	   <span class="n">data</span>	    <span class="n">bss</span>	    <span class="n">dec</span>	    <span class="n">hex</span>	<span class="n">filename</span>
+   <span class="mi">1566</span>	    <span class="mi">600</span>	      <span class="mi">8</span>	   <span class="mi">2174</span>	    <span class="mi">87</span><span class="n">e</span>	<span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+</code></pre></div></div>
+<p>如果我们使用<code class="language-plaintext highlighter-rouge">gcc -static</code>静态编译这个程序，会发现大小远远超乎我们的想象</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">➜</span>  <span class="n">size</span> <span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+   <span class="n">text</span>	   <span class="n">data</span>	    <span class="n">bss</span>	    <span class="n">dec</span>	    <span class="n">hex</span>	<span class="n">filename</span>
+ <span class="mi">762417</span>	  <span class="mi">20804</span>	   <span class="mi">6016</span>	 <span class="mi">789237</span>	  <span class="n">c0af5</span>	<span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+</code></pre></div></div>
+
+<h4 id="强行编译链接">强行编译+链接</h4>
+<p class="info">📌 使用<code class="language-plaintext highlighter-rouge">gcc -c</code>仅进行编译</p>
+
+<p><img src="/assets/images/JYYOS/lec1/compile-and-link.png" alt="Image" />
+我们会发现，ld找不到库函数，这是当然的，因为我们没有把<code class="language-plaintext highlighter-rouge">&lt;stdio.h&gt;</code>编译进来，还有一个奇怪的warning说找不到入口<code class="language-plaintext highlighter-rouge">_start</code></p>
+
+<p>那么我们试试不调用库函数，并将<code class="language-plaintext highlighter-rouge">main</code>改名为<code class="language-plaintext highlighter-rouge">_start</code></p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">int</span> <span class="n">_start</span><span class="p">()</span> <span class="p">{</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>这次确实没有报错了，表示已经编译成功了，但当我们运行这个可执行文件时：</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="mi">1178117</span> <span class="n">segmentation</span> <span class="n">fault</span> <span class="p">(</span><span class="n">core</span> <span class="n">dumped</span><span class="p">)</span>  <span class="p">.</span><span class="nf">/</span><span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+</code></pre></div></div>
+
+<p>那么接下来我们用gdb看看为什么会出现段错误，当我们进行单步调试后我们会发现，程序直到执行<code class="language-plaintext highlighter-rouge">retq</code>之前都正常，但返回后就崩溃了
+<img src="/assets/images/JYYOS/lec1/retq.png" alt="Image" />
+这时需要复习一下函数调用的实现以及<code class="language-plaintext highlighter-rouge">retq</code>指令做了什么，我们写一个简单的程序来看一下</p>
+
+<p class="info">📌 使用<code class="language-plaintext highlighter-rouge">objdump -d</code>查看程序的汇编代码</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">void</span> <span class="n">t</span><span class="p">()</span> <span class="p">{}</span>
+
+<span class="n">void</span> <span class="n">bar</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">t</span><span class="p">();</span>
+    <span class="n">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+    <span class="n">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">foo</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">bar</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="sr">//</span> <span class="n">gcc</span> <span class="o">-</span><span class="n">c</span> <span class="nb">test</span><span class="p">.</span><span class="nf">c</span> <span class="o">&amp;&amp;</span> <span class="n">objdump</span> <span class="o">-</span><span class="n">d</span> <span class="nb">test</span><span class="p">.</span><span class="nf">o</span>
+<span class="nb">test</span><span class="p">.</span><span class="nf">o</span><span class="p">:</span>	<span class="n">file</span> <span class="nb">format</span> <span class="n">mach</span><span class="o">-</span><span class="n">o</span> <span class="mi">64</span><span class="o">-</span><span class="n">bit</span> <span class="n">x86</span><span class="o">-</span><span class="mi">64</span>
+
+<span class="no">Disassembly</span> <span class="n">of</span> <span class="n">section</span> <span class="n">__TEXT</span><span class="p">,</span><span class="ss">__text:
+
+</span><span class="mo">0000000000000000</span> <span class="o">&lt;</span><span class="n">_t</span><span class="o">&gt;</span><span class="p">:</span>
+       <span class="mi">0</span><span class="p">:</span> <span class="mi">55</span>                           	<span class="n">pushq</span>	<span class="o">%</span><span class="n">rbp</span>
+       <span class="mi">1</span><span class="p">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span>                     	<span class="n">movq</span>	<span class="o">%</span><span class="n">rsp</span><span class="p">,</span> <span class="o">%</span><span class="n">rbp</span>
+       <span class="mi">4</span><span class="p">:</span> <span class="mi">5</span><span class="n">d</span>                           	<span class="n">popq</span>	<span class="o">%</span><span class="n">rbp</span>
+       <span class="mi">5</span><span class="p">:</span> <span class="n">c3</span>                           	<span class="n">retq</span>
+       <span class="mi">6</span><span class="p">:</span> <span class="mi">66</span> <span class="mi">2</span><span class="n">e</span> <span class="mi">0</span><span class="n">f</span> <span class="mi">1</span><span class="n">f</span> <span class="mi">84</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>	<span class="n">nopw</span>	<span class="o">%</span><span class="n">cs</span><span class="p">:(</span><span class="o">%</span><span class="n">rax</span><span class="p">,</span><span class="o">%</span><span class="n">rax</span><span class="p">)</span>
+
+<span class="mo">0000000000000010</span> <span class="o">&lt;</span><span class="n">_bar</span><span class="o">&gt;</span><span class="p">:</span>
+      <span class="mi">10</span><span class="p">:</span> <span class="mi">55</span>                           	<span class="n">pushq</span>	<span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">11</span><span class="p">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span>                     	<span class="n">movq</span>	<span class="o">%</span><span class="n">rsp</span><span class="p">,</span> <span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">14</span><span class="p">:</span> <span class="mi">48</span> <span class="mi">83</span> <span class="n">ec</span> <span class="mi">10</span>                  	<span class="n">subq</span>	<span class="vg">$16</span><span class="p">,</span> <span class="o">%</span><span class="n">rsp</span>
+      <span class="mi">18</span><span class="p">:</span> <span class="n">c7</span> <span class="mi">45</span> <span class="n">fc</span> <span class="mo">01</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>         	<span class="n">movl</span>	<span class="vg">$1</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+      <span class="mi">1</span><span class="ss">f: </span><span class="n">c7</span> <span class="mi">45</span> <span class="n">f8</span> <span class="mo">02</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>         	<span class="n">movl</span>	<span class="vg">$2</span><span class="p">,</span> <span class="o">-</span><span class="mi">8</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+      <span class="mi">26</span><span class="p">:</span> <span class="n">e8</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>               	<span class="n">callq</span>	<span class="mh">0x2b</span> <span class="o">&lt;</span><span class="n">_bar</span><span class="o">+</span><span class="mh">0x1b</span><span class="o">&gt;</span>
+      <span class="mi">2</span><span class="ss">b: </span><span class="n">c7</span> <span class="mi">45</span> <span class="n">f4</span> <span class="mo">03</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>         	<span class="n">movl</span>	<span class="vg">$3</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+      <span class="mi">32</span><span class="p">:</span> <span class="n">c7</span> <span class="mi">45</span> <span class="n">f0</span> <span class="mo">04</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>         	<span class="n">movl</span>	<span class="vg">$4</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+      <span class="mi">39</span><span class="p">:</span> <span class="mi">48</span> <span class="mi">83</span> <span class="n">c4</span> <span class="mi">10</span>                  	<span class="n">addq</span>	<span class="vg">$16</span><span class="p">,</span> <span class="o">%</span><span class="n">rsp</span>
+      <span class="mi">3</span><span class="ss">d: </span><span class="mi">5</span><span class="n">d</span>                           	<span class="n">popq</span>	<span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">3</span><span class="ss">e: </span><span class="n">c3</span>                           	<span class="n">retq</span>
+      <span class="mi">3</span><span class="ss">f: </span><span class="mi">90</span>                           	<span class="n">nop</span>
+
+<span class="mo">0000000000000040</span> <span class="o">&lt;</span><span class="n">_foo</span><span class="o">&gt;</span><span class="p">:</span>
+      <span class="mi">40</span><span class="p">:</span> <span class="mi">55</span>                           	<span class="n">pushq</span>	<span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">41</span><span class="p">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span>                     	<span class="n">movq</span>	<span class="o">%</span><span class="n">rsp</span><span class="p">,</span> <span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">44</span><span class="p">:</span> <span class="n">e8</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>               	<span class="n">callq</span>	<span class="mh">0x49</span> <span class="o">&lt;</span><span class="n">_foo</span><span class="o">+</span><span class="mh">0x9</span><span class="o">&gt;</span>
+      <span class="mi">49</span><span class="p">:</span> <span class="mi">5</span><span class="n">d</span>                           	<span class="n">popq</span>	<span class="o">%</span><span class="n">rbp</span>
+      <span class="mi">4</span><span class="ss">a: </span><span class="n">c3</span>                           	<span class="n">retq</span>
+
+</code></pre></div></div>
+<p>函数调用的全过程（<strong>注意栈是向下生长的，因此高地址为底部，低地址为顶部</strong>）</p>
+<ol>
+  <li>执行<code class="language-plaintext highlighter-rouge">callq</code>指令：此时会将<code class="language-plaintext highlighter-rouge">%rip</code>的值入栈，<code class="language-plaintext highlighter-rouge">%rip</code>此时指向<code class="language-plaintext highlighter-rouge">callq</code>的下一条指令，也就是将来函数调用返回时的地址。然后跳转到对应函数的起始位置</li>
+  <li>将<code class="language-plaintext highlighter-rouge">%rbp</code>入栈：此时<code class="language-plaintext highlighter-rouge">%rsp</code>下移8个字节，并在对应位置保存<code class="language-plaintext highlighter-rouge">%rbp</code>的值，这是调用函数前的栈底地址</li>
+  <li>将<code class="language-plaintext highlighter-rouge">%rsp</code>的值赋给<code class="language-plaintext highlighter-rouge">%rbp</code>，经过这一步后，<code class="language-plaintext highlighter-rouge">%rbp</code>会指向新栈的栈底，里面保存着返回上一个栈底地址</li>
+  <li>将<code class="language-plaintext highlighter-rouge">%rsp</code>下移，使其指向新栈的栈顶</li>
+  <li>局部变量入栈，执行函数体</li>
+  <li>将<code class="language-plaintext highlighter-rouge">%rsp</code>上移，使其回到栈底的位置</li>
+  <li><code class="language-plaintext highlighter-rouge">%rbp</code>出栈：此时先取出<code class="language-plaintext highlighter-rouge">%rsp</code>处保存的值（也就是原来的栈底地址），并赋给<code class="language-plaintext highlighter-rouge">%rbp</code>，此时<code class="language-plaintext highlighter-rouge">%rbp</code>重新指向调用函数前的栈底。然后将<code class="language-plaintext highlighter-rouge">%rsp</code>上移8个字节，此时<code class="language-plaintext highlighter-rouge">%rsp</code>指向<strong>函数返回后的下一条指令</strong></li>
+  <li>执行<code class="language-plaintext highlighter-rouge">retq</code>：
+    <ol>
+      <li>将pc移动到函数返回后的下一条指令 <code class="language-plaintext highlighter-rouge">mov (%rsp), rip</code></li>
+      <li><code class="language-plaintext highlighter-rouge">rsp</code>重新指向调用函数前的栈顶 <code class="language-plaintext highlighter-rouge">mov rsp, rsp + 8</code></li>
+    </ol>
+  </li>
+</ol>
+
+<p>示意图：
+<img src="/assets/images/JYYOS/lec1/stack.png" alt="Image" />
+从图中我们还能发现，每个栈帧顶部保存的就是下一个栈帧释放时，<code class="language-plaintext highlighter-rouge">%rip</code>要跳转的地址，也即函数的返回地址</p>
+
+<p>回到刚才发生段异常的地方，既然<code class="language-plaintext highlighter-rouge">retq</code>出错了，那么要么是取<code class="language-plaintext highlighter-rouge">%rsp</code>的时候出错，要么是更新<code class="language-plaintext highlighter-rouge">%rsp</code>的值出错，我们可以进一步调试
+<img src="/assets/images/JYYOS/lec1/$rsp.png" alt="Image" />
+会发现此时<code class="language-plaintext highlighter-rouge">%rsp</code>保存的值为0x1，不是一个合法地址，所以<code class="language-plaintext highlighter-rouge">retq</code>就会访问异常了，解决方案是使用<code class="language-plaintext highlighter-rouge">syscall</code></p>
+
+<h4 id="syscall">syscall</h4>
+<p>直接上代码</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#include &lt;sys/syscall.h&gt;</span>
+
+<span class="p">.</span><span class="nf">global</span> <span class="n">_start</span>
+<span class="ss">_start:
+  </span><span class="n">movq</span> <span class="vg">$SYS_write</span><span class="p">,</span> <span class="o">%</span><span class="n">rax</span>  <span class="c1"># write(</span>
+  <span class="n">movq</span> <span class="vg">$1</span><span class="p">,</span>         <span class="o">%</span><span class="n">rdi</span>  <span class="c1">#  fd = 1,</span>
+  <span class="n">movq</span> <span class="vg">$st</span><span class="p">,</span>        <span class="o">%</span><span class="n">rsi</span>  <span class="c1">#  buf = st,</span>
+  <span class="n">movq</span> <span class="err">$</span><span class="p">(</span><span class="n">ed</span> <span class="o">-</span> <span class="n">st</span><span class="p">),</span> <span class="o">%</span><span class="n">rdx</span>  <span class="c1">#  length = ed - st</span>
+  <span class="nb">syscall</span>                <span class="c1"># );</span>
+
+  <span class="n">movq</span> <span class="vg">$SYS_exit</span><span class="p">,</span>  <span class="o">%</span><span class="n">rax</span>  <span class="c1"># exit(</span>
+  <span class="n">movq</span> <span class="vg">$1</span><span class="p">,</span>         <span class="o">%</span><span class="n">rdi</span>  <span class="c1">#  1</span>
+  <span class="nb">syscall</span>                <span class="c1"># );</span>
+
+<span class="ss">st:
+  </span><span class="p">.</span><span class="nf">ascii</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[31;44mHello, World</span><span class="se">\n</span><span class="s2">"</span>
+<span class="ss">ed:
+</span></code></pre></div></div>
+<p>这是一段汇编代码，分别调用了如下两条系统调用：</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">syscall</span><span class="p">(</span><span class="no">SYS_write</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[31;44mHello, World</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="s2">"</span><span class="se">\033</span><span class="s2">[31;44mHello, World</span><span class="se">\n</span><span class="s2">"</span><span class="p">));</span>
+<span class="nb">syscall</span><span class="p">(</span><span class="no">SYS_exit</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</code></pre></div></div>
+<p>打印的效果如图</p>
+
+<p><img src="/assets/images/JYYOS/lec1/hello-world.png" alt="Image" /></p>
+
+<p>这里的小彩蛋就是用了<a href="https://www.ing.iac.es/~docs/external/bash/abs-guide/colorizing.html">ANSI Escape Code</a>来控制打印出来的Hello World的样式。同时我们可以看到这个程序是很小的</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">➜</span>  <span class="n">size</span> <span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+   <span class="n">text</span>	   <span class="n">data</span>	    <span class="n">bss</span>	    <span class="n">dec</span>	    <span class="n">hex</span>	<span class="n">filename</span>
+     <span class="mi">67</span>	      <span class="mi">0</span>	      <span class="mi">0</span>	     <span class="mi">67</span>	     <span class="mi">43</span>	<span class="n">a</span><span class="p">.</span><span class="nf">out</span>
+</code></pre></div></div>
+
+<h2 id="如何在两个视角间切换">如何在两个视角间切换</h2>
+<p>使用编译器。编译器就是自动将源代码转化成汇编代码的工具</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="sr">//</span> <span class="no">C</span> <span class="o">=</span> <span class="no">Assemble</span> <span class="n">code</span>
+<span class="sr">//</span> <span class="no">S</span> <span class="o">=</span> <span class="no">Source</span> <span class="n">code</span>
+<span class="no">C</span> <span class="o">=</span> <span class="no">Compiler</span><span class="p">(</span><span class="no">S</span><span class="p">)</span>
+</code></pre></div></div>
+<p>何谓正确的编译器呢？保证S和C的行为完全一致。</p>
+
+<p>如果一个编译器完全按照源代码进行解释性编译，那么其语义一定与源代码相同。但现代编译器都具备优化功能，会进行大量的优化，例如指令重排，删除不必要的指令等等</p>
+
+<h2 id="操作系统中的一般程序">操作系统中的一般程序</h2>
+<p>所有程序与前述的最小的Hello World程序本质都是一样的，等于计算+系统调用。操作系统管理了所有的软硬件资源，对程序来说操作系统就是一个接口，程序可以从中拿各种信息，也可以请求完成一些操作</p>
+
+<p>程序也是操作系统中的对象，与文本文件本质相同，只不过是二进制的，<code class="language-plaintext highlighter-rouge">vim</code>无法正确显示，<code class="language-plaintext highlighter-rouge">xxd</code>可以看到</p>
+
+<p>如何得知程序的初始状态？使用gdb</p>
+
+<p><img src="/assets/images/JYYOS/lec1/initial-state.png" alt="Image" /></p>
+
+<p>从图中能看到，第一条指令位于<code class="language-plaintext highlighter-rouge">0x00007ffff7fd0100</code>，其实是linux的加载器。高地址区域都是操作系统映射的，而低地址区则是程序本身的空间</p>
+
+<p>既然程序的运行过程有着确定的机制，那么我们就可以用相应的工具来进行观测。<code class="language-plaintext highlighter-rouge">strace</code>可以打印出一个程序使用的所有系统调用</p>
+
+<p><img src="/assets/images/JYYOS/lec1/strace.png" alt="Image" /></p>
+
+<p>可以看到每个程序执行的第一条系统调用一定是<code class="language-plaintext highlighter-rouge">exec</code></p>
+
+<h2 id="总结">总结</h2>
+<ul>
+  <li>程序 = 状态机
+    <ul>
+      <li>源代码S：状态迁移 = 执行语句</li>
+      <li>二进制代码C：状态迁移 = 执行指令</li>
+      <li>编译器 C = Compiler(S)</li>
+    </ul>
+  </li>
+  <li>应用视角的操作系统：syscall</li>
+  <li>计算机系统没有魔法（不存在玄学），一切都建立在确定的机制上
+    <ul>
+      <li>你的武器：gcc, <a href="https://sourceware.org/gdb/current/onlinedocs/gdb.html/">gdb</a>, <a href="https://www.gnu.org/software/binutils/">binutils</a>, strace…</li>
+    </ul>
+  </li>
+</ul>
+</div><section class="article__sharing d-print-none"></section><div class="d-print-none"><footer class="article__footer"><meta itemprop="dateModified" content="2023-03-02T00:00:00+08:00"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__license"><div class="license">
+    <p>本文遵守 <a itemprop="license" rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">Attribution-NonCommercial 4.0 International</a> 许可协议。
+      <a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0/">
+        <img alt="Attribution-NonCommercial 4.0 International" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" />
+      </a>
+    </p>
+  </div></div></footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span>上篇</span><a href="/2023/02/03/ATM.html">A simple ATM implementation based on message queue</a></div></div></div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div><section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div><div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main"><div itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="CY"><meta itemprop="url" content="/"><div class="footer__author-links"><div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"><li title="在 Github 上关注我。">
+        <a class="button button--circle github-button" itemprop="sameAs" href="https://github.com/mikucy" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path class="svgpath" data-index="path_0" fill="#272636" d="M0 525.2c0 223.6 143.3 413.7 343 483.5 26.9 6.8 22.8-12.4 22.8-25.4l0-88.7c-155.3 18.2-161.5-84.6-172-101.7-21.1-36-70.8-45.2-56-62.3 35.4-18.2 71.4 4.6 113.1 66.3 30.2 44.7 89.1 37.2 119 29.7 6.5-26.9 20.5-50.9 39.7-69.6C248.8 728.2 181.7 630 181.7 513.2c0-56.6 18.7-108.7 55.3-150.7-23.3-69.3 2.2-128.5 5.6-137.3 66.5-6 135.5 47.6 140.9 51.8 37.8-10.2 80.9-15.6 129.1-15.6 48.5 0 91.8 5.6 129.8 15.9 12.9-9.8 77-55.8 138.8-50.2 3.3 8.8 28.2 66.7 6.3 135 37.1 42.1 56 94.6 56 151.4 0 117-67.5 215.3-228.8 243.7 26.9 26.6 43.6 63.4 43.6 104.2l0 128.8c0.9 10.3 0 20.5 17.2 20.5C878.1 942.4 1024 750.9 1024 525.3c0-282.9-229.3-512-512-512C229.1 13.2 0 242.3 0 525.2L0 525.2z" />
+</svg>
+</div>
+        </a>
+      </li></ul>
+</div>
+</div>
+    </div><div class="site-info mt-2">
+      <div>© CY's blog 2021,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> & <a
+        title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div></div>
+    </div><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal"><script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header">搜索</div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text" />
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        取消</button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div></div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script>
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+

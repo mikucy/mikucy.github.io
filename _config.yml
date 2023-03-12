@@ -208,7 +208,7 @@ defaults:
     values:
       layout: article
       sharing: true
-      license: true
+      license: true 
       aside:
         toc: true
       show_edit_on_github: false
