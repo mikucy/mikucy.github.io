@@ -24,7 +24,7 @@ article_header:
 4. 安装的教程可以参照[TeXt的官网](https://tianqi.name/jekyll-TeXt-theme/docs/en/quick-start)进行，其实就是把大佬的网站拷贝一份到自己的repo，然后自己只需要更改一些配置，填充内容即可
 5. 如果要本地调试的话，需要额外安装一些工具，中间遇到有一个问题是下面的代码执行报错
 
-```
+```ruby
 bundle exec jekyll serve
 ```
 报错信息大概是
@@ -32,7 +32,7 @@ bundle exec jekyll serve
 cannot load such file -- webrick (LoadError)
 {:.error}
 于是我在Jekyll的github仓库issues中搜索了一下，终于找到了[解决方法](https://github.com/jekyll/jekyll/issues/8531)，输入如下命令即可：
-```
+```ruby
 bundle add webrick
 ```
 然后再执行之前的命令就可以在localhost:4000预览本地的网站效果了

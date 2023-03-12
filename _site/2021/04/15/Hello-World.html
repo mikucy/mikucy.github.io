@@ -335,13 +335,13 @@
   <li>如果要本地调试的话，需要额外安装一些工具，中间遇到有一个问题是下面的代码执行报错</li>
 </ol>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bundle exec jekyll serve
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bundle</span> <span class="nb">exec</span> <span class="n">jekyll</span> <span class="n">serve</span>
 </code></pre></div></div>
 <p>报错信息大概是</p>
 
 <p class="error">cannot load such file – webrick (LoadError)</p>
 <p>于是我在Jekyll的github仓库issues中搜索了一下，终于找到了<a href="https://github.com/jekyll/jekyll/issues/8531">解决方法</a>，输入如下命令即可：</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bundle add webrick
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bundle</span> <span class="n">add</span> <span class="n">webrick</span>
 </code></pre></div></div>
 <p>然后再执行之前的命令就可以在localhost:4000预览本地的网站效果了</p>
 

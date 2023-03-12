@@ -1,0 +1,104 @@
+I"�<!--more-->
+
+<p>自己一直对于mutex理解的还是很片面，这篇文章记录一些心得以及用法来加深印象</p>
+
+<hr />
+
+<h2 id="什么是mutex">什么是mutex</h2>
+<p>mutex，全称是<strong>mutual exclusion</strong>，也就是互相排斥的意思，通常我们也会简称为锁。mutex的作用就是提供互斥访问的特性，从而在多线程的程序中避免因条件竞争带来的问题，可以理解为是线程同步的一种机制。</p>
+
+<p>虽然概念听起来高大上，但其实mutex可以理解为就是内存的一块值，只有第一个访问这块内存的线程读到的是0（可以使用），一旦它被获取，其他线程再次访问读到的就会是1（无法使用/使用中）</p>
+
+<h2 id="mutex的实现">mutex的实现</h2>
+<p>关于mutex的实现我之前一直很模糊，不确定它到底是软件实现的，还是有硬件支持。造成这种印象的原因应该是自学操作系统课程时知识点没有深入理解。虽然很早期Dekker和Peterson确实用软件的方式实现了锁，但是相关算法既难以理解，也很难判断行为是否符合预期。因此现代的操作系统，特别是在现今多核CPU已经非常普及的情况下，<strong>mutex都是有硬件支持来实现的</strong>。</p>
+
+<h3 id="用多种方式来实现自旋锁">用多种方式来实现自旋锁</h3>
+<p>自旋锁是锁的一种，其特征就是如果获取锁失败了则会一直等待直到获得锁。利用现代计算机硬件提供的一些指令我们可以很方便的实现一个自旋锁，硬件会保证这些指令的原子性</p>
+
+<h4 id="test-and-set指令">test-and-set指令</h4>
+<p>又叫atomic exchange指令，这个指令的含义可以用以下代码来表示</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="sr">//</span> <span class="no">Fetch</span> <span class="n">old</span> <span class="n">value</span> <span class="n">and</span> <span class="n">set</span> <span class="n">new</span> <span class="n">value</span><span class="p">,</span> <span class="k">then</span> <span class="k">return</span> <span class="n">old</span> <span class="n">value</span>
+<span class="n">int</span> <span class="no">TestAndSet</span><span class="p">(</span><span class="n">int</span><span class="o">*</span> <span class="n">old_value</span><span class="p">,</span> <span class="n">int</span> <span class="n">new_value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">int</span> <span class="n">old</span> <span class="o">=</span> <span class="o">*</span><span class="n">old_value</span><span class="p">;</span>
+    <span class="o">*</span><span class="n">old_value</span> <span class="o">=</span> <span class="n">new_value</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">old</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>用TAS指令实现的自旋锁定义如下</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class SpinLockWithTAS {
+public:
+    void Lock() {
+        while (TestAndSet(flag, 1) == 1) {
+            // Spin...
+        }
+    }
+    void Unlock() {
+        flag = 0;
+    }
+
+private:
+    int flag = 0;
+};
+</code></pre></div></div>
+<p>简单分析一下它的原理：当第一个线程对一个自旋锁对象调用<code class="language-plaintext highlighter-rouge">Lock</code>时，flag为0，因此<code class="language-plaintext highlighter-rouge">TestAndSet</code>将flag置为1并返回0，不会进入无限循环（回忆一下，<strong>这个指令返回原来的值</strong>）。当第二个线程也试图调用<code class="language-plaintext highlighter-rouge">Lock</code>方法时，便会由于flag为1而进入自旋，直到第一个线程调用<code class="language-plaintext highlighter-rouge">Unlock</code>方法释放锁，循环的判断条件才会失效</p>
+
+<h4 id="compare-and-swap指令">compare-and-swap指令</h4>
+<p>又叫compare-and-exchange指令，这个指令的含义可以用以下代码来表示</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Compare the ptr with the target, if it's expected then swap ptr with value, otherwise do nothing.
+// Return the original value.
+int CompareAndSwap(int* ptr, int expected, int value) {
+    int original = *ptr;
+    if (original == expected) {
+        *ptr = value;
+    }
+    return original;
+}
+</code></pre></div></div>
+<p>用CAS指令实现的自旋锁定义如下</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class SpinLockWithCAS {
+public:
+    void Lock() {
+        while (CompareAndSwap(&amp;flag, 0, 1) == 1) {
+            // Spin...
+        }
+    }
+    void Unlock() {
+        flag = 0;
+    }
+
+private:
+    int flag = 0;
+};
+</code></pre></div></div>
+<p>原理与用TAS的实现相同</p>
+
+<h4 id="fetch-and-add指令">fetch-and-add指令</h4>
+<p>将某个地址的值加一并返回原来的值，代码表示如下</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Atomically increments a value while returning the old value.
+int FetchAndAdd(int* ptr) {
+    int old = *ptr;
+    *ptr = old + 1;
+    return old;
+}
+</code></pre></div></div>
+<p>用这个指令可以实现一种更高级的<code class="language-plaintext highlighter-rouge">ticket lock</code></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class TicketLock {
+public:
+    void Lock() {
+        int my_turn = FetchAndAdd(&amp;ticket);
+        while (turn != my_turn) {
+            // Spin...
+        }
+    }
+
+    void Unlock() {
+        ++turn;
+    }
+
+private:
+    int ticket = 0;
+    int turn = 0;
+};
+</code></pre></div></div>
+<p>分析一下该锁的原理：每个试图加锁的线程会让<code class="language-plaintext highlighter-rouge">ticket</code>加一，同时也表明了每个线程对应的<code class="language-plaintext highlighter-rouge">turn</code>。比如第一个获得的就是0，第二个则是1，依次类推。当锁保存的<code class="language-plaintext highlighter-rouge">turn</code>与线程对应的<code class="language-plaintext highlighter-rouge">turn</code>不相等时，线程保持自旋。仅当持有锁的线程解锁后，锁保存的<code class="language-plaintext highlighter-rouge">turn</code>才会增加，下一个线程就能获得锁</p>
+:ET
